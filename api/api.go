@@ -5,36 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"os"
-
 	"net/http"
+	"os"
 )
-
-type Config struct {
-	BaseURL     string `json:"baseURL"`
-	Credentials struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	} `json:"credentials"`
-}
-
-var config Config
-
-func init() {
-	loadConfig()
-}
-
-func loadConfig() {
-	file, err := os.ReadFile("config.json")
-	if err != nil {
-		panic(err)
-	}
-
-	err = json.Unmarshal(file, &config)
-	if err != nil {
-		panic(err)
-	}
-}
 
 func FetchBitcoinFromAPI(address string) (models.BitcoinAddress, error) {
 	var bitcoin models.BitcoinAddress
@@ -50,12 +23,15 @@ func FetchTxFromAPI(txID string) (models.Transaction, error) {
 }
 
 func makeRequest(url string) (*http.Response, error) {
+	username := os.Getenv("USERNAME")
+	password := os.Getenv("PASSWORD")
+	basicUrl := os.Getenv("URL")
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", config.BaseURL+url, nil)
+	req, err := http.NewRequest("GET", basicUrl+url, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.SetBasicAuth(config.Credentials.Username, config.Credentials.Password)
+	req.SetBasicAuth(username, password)
 
 	return client.Do(req)
 }

@@ -4,11 +4,18 @@ import (
 	"bitcoin-klever-api/controllers"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
 )
+
+func TestMain(m *testing.M) {
+	os.Setenv("USERNAME", "support")
+	os.Setenv("PASSWORD", "Fg+GJKDACKIEOD3XVps=")
+	os.Setenv("URL", "https://bitcoin.explorer.klever.io/api/v2/")
+}
 
 func TestHealthCheckHandler(t *testing.T) {
 	req, err := http.NewRequest("GET", "/health", nil)
@@ -51,7 +58,6 @@ func TestGetBitcoinData(t *testing.T) {
 		t.Errorf("GetBitcoinData returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
-
 }
 
 func TestGetBalance(t *testing.T) {

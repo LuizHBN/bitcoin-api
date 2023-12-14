@@ -9,7 +9,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/patrickmn/go-cache"
 )
+
+var txCache = cache.New(cache.NoExpiration, cache.NoExpiration)
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
@@ -113,6 +116,12 @@ func CalculateUtxo(address string, amount int64) (models.Utxos, error) {
 func GetTransactionData(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	txID := vars["tx"]
+
+	if cachedTx, found := txCache.Get(txID); found {
+		response := cachedTx.(models.TransactionResponse)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 	tx, err := api.FetchTxFromAPI(txID)
 
 	if err != nil {
@@ -123,4 +132,5 @@ func GetTransactionData(w http.ResponseWriter, r *http.Request) {
 	response := models.ConvertTransactionToTransactionResponse(tx, addresses)
 
 	json.NewEncoder(w).Encode(response)
+	txCache.Set(txID, response, cache.NoExpiration)
 }
